@@ -100,6 +100,10 @@ MonoBehaviour:
   rb: {fileID: 6577759634673773434}
   sprite: {fileID: 3711368952904548493}
   behavior: {fileID: 11400000, guid: 044ab61328741c7499a843a8689674e7, type: 2}
+  explosion: {fileID: 6736408231040114423, guid: 889b044822ca64a45b01236125327946, type: 3}
+  successfulClickEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!50 &6577759634673773434
 Rigidbody2D:
   serializedVersion: 4

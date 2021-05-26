@@ -25,6 +25,10 @@ MonoBehaviour:
       _min: 2
       _max: 5
   onscreenMargins: {x: 1, y: 1}
+  direction:
+    horizontal: 1
+    vertical: 1
+    diagonal: 0
   happyColor: {r: 1, g: 1, b: 1, a: 1}
   angryColor: {r: 1, g: 0, b: 0, a: 1}
   angryInterval:
@@ -39,4 +43,3 @@ MonoBehaviour:
     valueRange:
       _min: 0
       _max: 0
-  isAngry: 0

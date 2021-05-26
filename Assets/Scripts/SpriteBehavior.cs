@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "SpriteBehavior", menuName ="SpriteBehavior")]
+[CreateAssetMenu(fileName = "SpriteBehavior", menuName ="Sprite Behavior")]
 public class SpriteBehavior : ScriptableObject
 {
     [Header("Movement")]
@@ -13,13 +13,8 @@ public class SpriteBehavior : ScriptableObject
     public OptionallyRandomFloat directionSwitchInterval;
     [Tooltip("Space inside the viewing area that the sprite will not venture out of")]
     public Vector2 onscreenMargins;
-
-    // List of available directions for the sprite
-    private List<Vector2> availableDirections = new List<Vector2>()
-    {
-        Vector2.up, Vector2.down, Vector2.left, Vector2.right,
-        Vector2.one, -Vector2.one, new Vector2(-1, 1), new Vector2(1, -1)
-    };
+    [Tooltip("Settings for how the sprite is able to move")]
+    public SpriteDirection direction;
 
     [Header("Happy/Angry")]
 
@@ -31,8 +26,6 @@ public class SpriteBehavior : ScriptableObject
     public OptionallyRandomFloat angryInterval;
     [Tooltip("The amount of time that the sprite stays angry")]
     public OptionallyRandomFloat angryDuration;
-    [HideInInspector]
-    public bool isAngry = false;
 
     public IEnumerator MovementRoutine(Rigidbody2D rb, Camera viewingCamera)
     {
@@ -49,9 +42,16 @@ public class SpriteBehavior : ScriptableObject
         while(true)
         {
             // Curate the available directions, then set the velocity to a random direction
-            curatedDirections = CurateAvailableDirections(rb, view);
+            curatedDirections = direction.CurateAvailableDirections(rb.position, view);
             selectedDirection = curatedDirections[Random.Range(0, curatedDirections.Count)];
-            rb.velocity = selectedDirection.normalized * speed.Get();
+            rb.velocity = selectedDirection * speed.Get();
+
+            // If the sprite went out of bounds, give the sprite a small nudge back in bounds
+            // so that !view.Contains doesn't trigger again immediately
+            if (!view.Contains(rb.position))
+            {
+                rb.position += selectedDirection * 0.1f;
+            }
 
             // Set the time of this switch and the next switch
             directionSwitchCurrent = Time.time;
@@ -67,25 +67,18 @@ public class SpriteBehavior : ScriptableObject
 
     public IEnumerator AngerRoutine(SpriteRenderer renderer)
     {
-        SetAngry(false, renderer);
+        renderer.color = happyColor;
 
         while(true)
         {
             // Wait for the angry interval, then become angry
             yield return new WaitForSeconds(angryInterval.Get());
-            SetAngry(true, renderer);
+            renderer.color = angryColor;
 
             // Wait for the angry duration, then become happy again
             yield return new WaitForSeconds(angryDuration.Get());
-            SetAngry(false, renderer);
+            renderer.color = happyColor;
         }
-    }
-
-    public void SetAngry(bool angry, SpriteRenderer renderer)
-    {
-        isAngry = angry;
-        if (angry) renderer.color = angryColor; 
-        else renderer.color = happyColor;
     }
 
     private Bounds CameraViewingBounds(Camera camera)
@@ -102,33 +95,8 @@ public class SpriteBehavior : ScriptableObject
         return new Bounds(center, size);
     }
 
-    // Modify the directions available for the sprite to move 
-    // based on the position of the rigidbody relative to the view's bounds
-    private List<Vector2> CurateAvailableDirections(Rigidbody2D rb, Bounds viewBounds)
+    public bool SpriteIsAngry(SpriteRenderer renderer)
     {
-        List<Vector2> curatedDirections = new List<Vector2>(availableDirections);
-
-        // If the sprite is too far to the left, remove all left-bound directions
-        if(rb.position.x < viewBounds.min.x)
-        {
-            curatedDirections.RemoveAll(v => v.x < 0.1f);
-        }
-        // If the sprite is too far to the right, remove all right-bound directions
-       if(rb.position.x > viewBounds.max.x)
-        {
-            curatedDirections.RemoveAll(v => v.x > -0.1f);
-        }
-        // If the sprite is too far down, remove all down-bound directions
-        if (rb.position.y < viewBounds.min.y)
-        {
-            curatedDirections.RemoveAll(v => v.y < 0.1f);
-        }
-        // If the sprite is too far up, remove all upward-bound directions
-        if (rb.position.y > viewBounds.max.y)
-        {
-            curatedDirections.RemoveAll(v => v.y > -0.1f);
-        }
-
-        return curatedDirections;
+        return renderer.color == angryColor;
     }
 }

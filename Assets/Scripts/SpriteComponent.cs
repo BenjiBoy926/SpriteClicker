@@ -26,7 +26,7 @@ public class SpriteComponent : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if(behavior.isAngry)
+        if(behavior.SpriteIsAngry(sprite))
         {
             StopCoroutine(angerRoutine);
             angerRoutine = StartCoroutine(behavior.AngerRoutine(sprite));
