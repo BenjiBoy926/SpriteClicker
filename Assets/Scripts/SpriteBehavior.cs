@@ -18,6 +18,10 @@ public class SpriteBehavior : ScriptableObject
 
     [Header("Happy/Angry")]
 
+    [Tooltip("Name of the trigger in the animator when the sprite is in the happy state")]
+    public string happyAnimationTrigger = "Happy";
+    [Tooltip("Name of the trigger in the animator when the sprite is in the angry state")]
+    public string angryAnimationTrigger = "Angry";
     [Tooltip("Color of the sprite when it is in the happy state")]
     public Color happyColor;
     [Tooltip("Color of the sprite when it is in the angry state")]
@@ -27,7 +31,7 @@ public class SpriteBehavior : ScriptableObject
     [Tooltip("The amount of time that the sprite stays angry")]
     public OptionallyRandomFloat angryDuration;
 
-    public IEnumerator MovementRoutine(Rigidbody2D rb, Camera viewingCamera)
+    public IEnumerator MovementRoutine(Rigidbody2D rb, SpriteRenderer renderer, Camera viewingCamera)
     {
         Bounds view = CameraViewingBounds(viewingCamera);
         // Time of the app when the last direction switched
@@ -45,6 +49,17 @@ public class SpriteBehavior : ScriptableObject
             curatedDirections = direction.CurateAvailableDirections(rb.position, view);
             selectedDirection = curatedDirections[Random.Range(0, curatedDirections.Count)];
             rb.velocity = selectedDirection * speed.Get();
+
+            // If direction is to the right, flip the x axis
+            if(selectedDirection.x > 0.1f)
+            {
+                renderer.flipX = true;
+            }
+            // If direction is left, do not flip the x axis
+            if(selectedDirection.x < -0.1f)
+            {
+                renderer.flipX = false;
+            }
 
             // If the sprite went out of bounds, give the sprite a small nudge back in bounds
             // so that !view.Contains doesn't trigger again immediately
@@ -65,19 +80,33 @@ public class SpriteBehavior : ScriptableObject
         }
     }
 
-    public IEnumerator AngerRoutine(SpriteRenderer renderer)
+    public IEnumerator AngerRoutine(SpriteRenderer renderer, Animator animator)
     {
-        renderer.color = happyColor;
+        SetAngry(false, renderer, animator);
 
         while(true)
         {
             // Wait for the angry interval, then become angry
             yield return new WaitForSeconds(angryInterval.Get());
-            renderer.color = angryColor;
+            SetAngry(true, renderer, animator);
 
             // Wait for the angry duration, then become happy again
             yield return new WaitForSeconds(angryDuration.Get());
+            SetAngry(false, renderer, animator);
+        }
+    }
+
+    private void SetAngry(bool angry, SpriteRenderer renderer, Animator animator)
+    {
+        if(angry)
+        {
+            renderer.color = angryColor;
+            animator.SetTrigger(angryAnimationTrigger);
+        }
+        else
+        {
             renderer.color = happyColor;
+            animator.SetTrigger(happyAnimationTrigger);
         }
     }
 

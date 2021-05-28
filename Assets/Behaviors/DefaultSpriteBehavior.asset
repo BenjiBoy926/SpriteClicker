@@ -28,7 +28,9 @@ MonoBehaviour:
   direction:
     horizontal: 1
     vertical: 1
-    diagonal: 0
+    diagonal: 1
+  happyAnimationTrigger: Happy
+  angryAnimationTrigger: Angry
   happyColor: {r: 1, g: 1, b: 1, a: 1}
   angryColor: {r: 1, g: 0, b: 0, a: 1}
   angryInterval:

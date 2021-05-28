@@ -9,6 +9,8 @@ public class SpriteComponent : MonoBehaviour
     public Rigidbody2D rb;
     [Tooltip("Refernece to the sprite rendered used to render the sprite")]
     public SpriteRenderer sprite;
+    [Tooltip("Reference to the animator used to animate the sprite")]
+    public Animator animator;
     [Tooltip("Reference to the scriptable object that defines this sprite's behavior")]
     public SpriteBehavior behavior;
     [Tooltip("Event invoked when the sprite is successfully clicked while angry")]
@@ -20,8 +22,8 @@ public class SpriteComponent : MonoBehaviour
 
     private void Start()
     {
-        movementRoutine = StartCoroutine(behavior.MovementRoutine(rb, Camera.main));
-        angerRoutine = StartCoroutine(behavior.AngerRoutine(sprite));
+        movementRoutine = StartCoroutine(behavior.MovementRoutine(rb, sprite, Camera.main));
+        angerRoutine = StartCoroutine(behavior.AngerRoutine(sprite, animator));
     }
 
     private void OnMouseDown()
@@ -29,7 +31,7 @@ public class SpriteComponent : MonoBehaviour
         if(behavior.SpriteIsAngry(sprite))
         {
             StopCoroutine(angerRoutine);
-            angerRoutine = StartCoroutine(behavior.AngerRoutine(sprite));
+            angerRoutine = StartCoroutine(behavior.AngerRoutine(sprite, animator));
 
             // Invoke the successful click event
             successfulClickEvent.Invoke();
